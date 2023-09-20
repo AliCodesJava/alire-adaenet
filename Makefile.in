@@ -1,0 +1,48 @@
+BOARD=@BOARD@
+BOARD_DIR=@BOARD_DIR@
+MODE=-XBUILD=Debug -XBUILD_RTS=Debug
+
+GPRBUILD=gprbuild --target=arm-eabi
+
+all:	ping echo dns time
+
+ping:
+	$(GPRBUILD) $(MODE) -Pping -p -cargs -mno-unaligned-access
+	arm-eabi-objcopy -O binary obj/${BOARD_DIR}/ping ping.bin
+
+time:
+	$(GPRBUILD) $(MODE) -Ptime -p -cargs -mno-unaligned-access
+	arm-eabi-objcopy -O binary obj/${BOARD_DIR}/time time.bin
+
+echo:
+	$(GPRBUILD) $(MODE) -Pecho -p -cargs -mno-unaligned-access
+	arm-eabi-objcopy -O binary obj/${BOARD_DIR}/echo echo.bin
+
+dns:
+	$(GPRBUILD) $(MODE) -Pdns -p -cargs -mno-unaligned-access
+	arm-eabi-objcopy -O binary obj/${BOARD_DIR}/dns dns.bin
+
+ethdemo:
+	$(GPRBUILD) -Panet -p -cargs -mno-unaligned-access
+	arm-eabi-objcopy -O binary obj/${BOARD_DIR}/ethdemo ethdemo.bin
+
+flash-time:		time
+	st-flash write time.bin 0x8000000
+
+flash-ping:		ping
+	st-flash write ping.bin 0x8000000
+
+flash-echo:		all
+	st-flash write echo.bin 0x8000000
+
+flash-dns:		dns
+	st-flash write dns.bin 0x8000000
+
+checkout:
+	git submodule update --init --recursive
+
+clean:
+	rm -rf obj ping.bin echo.bin dns.bin time.bin
+
+.PHONY: ping echo time dns
+
